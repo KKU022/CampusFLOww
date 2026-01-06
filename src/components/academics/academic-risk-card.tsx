@@ -157,7 +157,11 @@ export function AcademicRiskCard() {
                   </div>
                    <div>
                     <h4 className="font-semibold">Suggested Actions</h4>
-                    <p className="text-foreground/80">{result.suggestions}</p>
+                    <ul className="list-disc pl-5 text-foreground/80">
+                      {result.suggestions.map((suggestion, index) => (
+                        <li key={index}>{suggestion}</li>
+                      ))}
+                    </ul>
                   </div>
                 </AlertDescription>
               </Alert>

@@ -133,8 +133,12 @@ export function HostelIntelligenceCard() {
                 <AlertTitle className="font-headline">AI Recommendations</AlertTitle>
                 <AlertDescription className="space-y-4">
                   <div>
-                    <h4 className="font-semibold">Activity Suggestion</h4>
-                    <p className="text-foreground/80">{result.activitySuggestion}</p>
+                    <h4 className="font-semibold">Activity Suggestions</h4>
+                    <ul className="list-disc pl-5 text-foreground/80">
+                      {result.activitySuggestions.map((suggestion, index) => (
+                        <li key={index}>{suggestion}</li>
+                      ))}
+                    </ul>
                   </div>
                    <div>
                     <h4 className="font-semibold">Nutrition Feedback</h4>

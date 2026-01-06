@@ -18,7 +18,7 @@ const RecommendHostelActivitiesInputSchema = z.object({
 export type RecommendHostelActivitiesInput = z.infer<typeof RecommendHostelActivitiesInputSchema>;
 
 const RecommendHostelActivitiesOutputSchema = z.object({
-  activitySuggestion: z.string().describe('A suggested activity based on the hostel conditions.'),
+  activitySuggestions: z.array(z.string()).describe('A list of suggested activities based on the hostel conditions.'),
   nutritionFeedback: z.string().describe('Simple nutrition feedback based on the mess menu.'),
 });
 export type RecommendHostelActivitiesOutput = z.infer<typeof RecommendHostelActivitiesOutputSchema>;
@@ -39,9 +39,10 @@ const prompt = ai.definePrompt({
   Mess Menu: {{{messMenu}}}
   Free Slot Duration: {{{freeSlotDuration}}}
 
-  Please suggest an activity that is appropriate for the given conditions. Be supportive, not strict. Focus on actionable, short tasks. Avoid generic advice. Use student-friendly language.
+  Please suggest a list of activities that are appropriate for the given conditions. Be supportive, not strict. Focus on actionable, short tasks. Avoid generic advice. Use student-friendly language.
   Also provide simple nutrition feedback based on the mess menu.
   Remember that your suggestion and feedback should be tailored towards university students.
+  Format the activity suggestions as a list of bullet points.
   `,
 });
 

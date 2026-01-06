@@ -36,10 +36,10 @@ export type GenerateStudySuggestionsInput = z.infer<
 >;
 
 const GenerateStudySuggestionsOutputSchema = z.object({
-  studySuggestion: z
-    .string()
+  studySuggestions: z
+    .array(z.string())
     .describe(
-      'A personalized study suggestion that takes into account the student’s free time, academic weaknesses, and hostel conditions.'
+      'A list of personalized study suggestions that takes into account the student’s free time, academic weaknesses, and hostel conditions.'
     ),
 });
 export type GenerateStudySuggestionsOutput = z.infer<
@@ -65,9 +65,10 @@ const prompt = ai.definePrompt({
   - Hostel conditions: {{{hostelConditions}}}
   - Past study behavior: {{{pastBehavior}}}
 
-  Based on this information, generate a specific and actionable study suggestion that the student can complete in the available free time.
+  Based on this information, generate a list of specific and actionable study suggestions that the student can complete in the available free time.
 
-  The suggestion should be supportive and encouraging, focusing on short, achievable tasks. Avoid generic advice and use student-friendly language.
+  The suggestions should be supportive and encouraging, focusing on short, achievable tasks. Avoid generic advice and use student-friendly language.
+  Format the suggestions as a list of bullet points.
   Do not provide any medical or diagnostic claims.
   `,
 });

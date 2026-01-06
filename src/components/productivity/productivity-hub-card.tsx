@@ -136,8 +136,12 @@ export function ProductivityHubCard() {
               <Alert className="bg-primary/5">
                 <Sparkles className="h-4 w-4" />
                 <AlertTitle className="font-headline">AI Suggestion</AlertTitle>
-                <AlertDescription className="text-foreground/80">
-                  {result.studySuggestion}
+                <AlertDescription>
+                  <ul className="list-disc pl-5 text-foreground/80">
+                    {result.studySuggestions.map((suggestion, index) => (
+                        <li key={index}>{suggestion}</li>
+                    ))}
+                  </ul>
                 </AlertDescription>
               </Alert>
             )}

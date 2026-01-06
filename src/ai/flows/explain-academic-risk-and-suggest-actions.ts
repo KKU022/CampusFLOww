@@ -36,8 +36,8 @@ const ExplainAcademicRiskAndSuggestActionsOutputSchema = z.object({
     .string()
     .describe('An explanation of the reasons behind the academic risk score.'),
   suggestions: z
-    .string()
-    .describe('Preventive actions the student can take to improve their academic standing.'),
+    .array(z.string())
+    .describe('A list of preventive actions the student can take to improve their academic standing.'),
 });
 export type ExplainAcademicRiskAndSuggestActionsOutput = z.infer<
   typeof ExplainAcademicRiskAndSuggestActionsOutputSchema
@@ -55,7 +55,7 @@ const prompt = ai.definePrompt({
   output: {schema: ExplainAcademicRiskAndSuggestActionsOutputSchema},
   prompt: `You are an AI academic advisor providing personalized feedback to students.
 
-  Based on the student's academic metrics, explain the reasons behind their academic risk score and suggest preventive actions.
+  Based on the student's academic metrics, explain the reasons behind their academic risk score and suggest preventive actions in bullet points.
   Be supportive, not strict. Focus on actionable, short tasks. Avoid generic advice. Use student-friendly language.
 
   Academic Risk: {{{academicRisk}}}
