@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -28,12 +28,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '../ui/skeleton';
 
 export function AttendanceManager() {
-  const [subjects, setSubjects] = useState<SubjectAttendance[]>(
-    getInitialAttendance()
-  );
+  const [subjects, setSubjects] = useState<SubjectAttendance[]>([]);
+  const [loading, setLoading] = useState(true);
   const targetAttendance = 75;
+
+  useEffect(() => {
+    setSubjects(getInitialAttendance());
+    setLoading(false);
+  }, []);
 
   const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
   const totalClasses = subjects.reduce((sum, s) => sum + s.total, 0);
@@ -89,6 +94,57 @@ export function AttendanceManager() {
       };
     }
   };
+
+  if (loading) {
+    return (
+        <Card className="border-none shadow-none">
+            <CardHeader>
+                 <div className="flex items-start justify-between">
+                    <div>
+                        <CardDescription>Target: {targetAttendance}%</CardDescription>
+                        <Skeleton className="h-7 w-48 mt-1" />
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {format(new Date(), 'dd MMM, yyyy')}
+                        </p>
+                    </div>
+                     <div className="flex flex-col items-end gap-2">
+                        <Button className="bg-green-500 hover:bg-green-600 text-white">
+                        Add Subject
+                        </Button>
+                        <div className="flex gap-2">
+                            <Button variant="ghost" size="icon">
+                                <Calendar className="h-5 w-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                                <BarChart className="h-5 w-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                                <ClipboardCheck className="h-5 w-5" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                    <Card key={i} className="bg-card-foreground/5 dark:bg-card-foreground/10">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <Skeleton className="w-1.5 h-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-6 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-4 w-2/3" />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Skeleton className="h-[60px] w-[60px] rounded-full" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </CardContent>
+        </Card>
+    )
+  }
 
   return (
     <Card className="border-none shadow-none">
