@@ -132,9 +132,9 @@ export function AttendanceManager() {
                     <div>
                         <CardDescription>Target: {targetAttendance}%</CardDescription>
                         <Skeleton className="h-7 w-48 mt-1" />
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <div className="text-sm text-muted-foreground mt-1">
                             <Skeleton className="h-4 w-24" />
-                        </p>
+                        </div>
                     </div>
                      <div className="flex flex-col items-end gap-2">
                         <Skeleton className="h-10 w-28" />
@@ -312,5 +312,3 @@ export function AttendanceManager() {
     </Card>
   );
 }
-
-    
