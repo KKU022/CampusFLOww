@@ -1,4 +1,4 @@
-import type { User, TimetableEntry, AcademicMetrics, SubjectAttendance } from './types';
+import type { User, TimetableEntry, SubjectAttendance } from './types';
 
 export const mockUser: User = {
   name: 'Alex Doe',
@@ -6,7 +6,7 @@ export const mockUser: User = {
   branch: 'Computer Science',
   hostel: 'Galaxy Hostel',
   productivityScore: 78,
-  academicRisk: 'Low',
+  cgpa: 8.5,
   avatarUrl: 'https://picsum.photos/seed/1/100/100',
 };
 
@@ -66,12 +66,6 @@ export const mockTimetable: TimetableEntry[] = [
     type: 'lecture',
   },
 ];
-
-export const mockAcademicMetrics: AcademicMetrics = {
-  attendance: 85,
-  assignmentsMissed: 2,
-  stressLevel: 3,
-};
 
 
 const baseSchedule: Omit<TimetableEntry, 'id' | 'day'>[] = [

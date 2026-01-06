@@ -1,6 +1,6 @@
 'use client';
 
-import { AcademicRiskCard } from '@/components/academics/academic-risk-card';
+import { CgpaCalculatorCard } from '@/components/academics/cgpa-calculator-card';
 import { AttendanceManager } from '@/components/academics/attendance-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -13,13 +13,13 @@ export default function AcademicsPage() {
       <Tabs defaultValue="attendance">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="attendance">Attendance Manager</TabsTrigger>
-          <TabsTrigger value="risk">Risk Predictor</TabsTrigger>
+          <TabsTrigger value="cgpa">CGPA Calculator</TabsTrigger>
         </TabsList>
         <TabsContent value="attendance">
           <AttendanceManager />
         </TabsContent>
-        <TabsContent value="risk">
-          <AcademicRiskCard />
+        <TabsContent value="cgpa">
+          <CgpaCalculatorCard />
         </TabsContent>
       </Tabs>
     </div>

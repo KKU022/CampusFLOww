@@ -4,7 +4,7 @@ export type User = {
   branch: string;
   hostel: string;
   productivityScore: number;
-  academicRisk: 'Low' | 'Medium' | 'High';
+  cgpa: number;
   avatarUrl: string;
 };
 

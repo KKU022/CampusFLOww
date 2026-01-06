@@ -111,7 +111,7 @@ export default function DashboardPage() {
             <WelcomeHeader name={mockUser.name} />
             <QuickStats 
                 productivityScore={mockUser.productivityScore} 
-                academicRisk={mockUser.academicRisk} 
+                cgpa={mockUser.cgpa} 
             />
             
             <div className="flex gap-2 items-center flex-wrap">
