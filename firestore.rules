@@ -164,20 +164,6 @@ service cloud.firestore {
       }
 
       /**
-       * @description User's personal academic metrics.
-       * @path /users/{userId}/academicMetrics/{academicMetricsId}
-       * @allow (create, get, list, update, delete) The owner of the metrics.
-       * @deny Any user who is not the owner.
-       * @principle Restricts access to a user's own data tree (Path-based ownership).
-       */
-      match /academicMetrics/{academicMetricsId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasValidSubcollectionCreateData(userId);
-        allow update: if isExistingOwner(userId) && hasValidSubcollectionUpdateData();
-        allow delete: if isExistingOwner(userId);
-      }
-
-      /**
        * @description User's historical focus session logs.
        * @path /users/{userId}/focusSessions/{focusSessionId}
        * @allow (create, get, list, update, delete) The owner of the session logs.

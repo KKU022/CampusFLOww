@@ -30,10 +30,6 @@
           "type": "number",
           "description": "The user's overall productivity score."
         },
-        "academicRisk": {
-          "type": "string",
-          "description": "The user's academic risk level (Low, Medium, High)."
-        },
         "todaysStudyTime": {
           "type": "number",
           "description": "Total study time in minutes for the current day."
@@ -61,8 +57,7 @@
         "year",
         "branch",
         "hostel",
-        "productivityScore",
-        "academicRisk"
+        "productivityScore"
       ]
     },
     "Timetable": {
@@ -148,41 +143,6 @@
         "suggestion",
         "duration",
         "completed"
-      ]
-    },
-    "AcademicMetrics": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AcademicMetrics",
-      "type": "object",
-      "description": "Represents a user's academic metrics.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the AcademicMetrics entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:1 AcademicMetrics)"
-        },
-        "attendance": {
-          "type": "number",
-          "description": "The user's attendance percentage."
-        },
-        "assignmentsMissed": {
-          "type": "number",
-          "description": "The number of assignments the user has missed."
-        },
-        "stressLevel": {
-          "type": "number",
-          "description": "The user's self-reported stress level (1-5)."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "attendance",
-        "assignmentsMissed",
-        "stressLevel"
       ]
     },
     "FocusSession": {
@@ -370,26 +330,6 @@
             {
               "name": "taskId",
               "description": "The unique identifier for the task."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/academicMetrics/{academicMetricsId}",
-        "definition": {
-          "entityName": "AcademicMetrics",
-          "schema": {
-            "$ref": "#/backend/entities/AcademicMetrics"
-          },
-          "description": "Stores academic metrics for each user. Path-based ownership.  Ideally, there should only be one document per user, so the {academicMetricsId} could just be 'default'.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "academicMetricsId",
-              "description": "The unique identifier for the academic metrics (e.g., 'default')."
             }
           ]
         }
