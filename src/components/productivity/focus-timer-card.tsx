@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, collection, addDoc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 export function FocusTimerCard() {
@@ -117,16 +117,16 @@ export function FocusTimerCard() {
     setIsActive(true);
     setIsPaused(false);
     
-    if (liveSessionRef) {
+    if (liveSessionRef && user) {
         const endTime = new Date();
         endTime.setSeconds(endTime.getSeconds() + calculatedInitialTime);
-        addDocumentNonBlocking(liveSessionRef, {
+        setDocumentNonBlocking(liveSessionRef, {
             subject: subject,
             remainingTime: minutes,
             endTime: endTime.toISOString(),
-            userId: user?.uid,
-            id: user?.uid,
-        });
+            userId: user.uid,
+            id: user.uid,
+        }, { merge: true });
     }
   };
   
@@ -242,7 +242,7 @@ export function FocusTimerCard() {
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-4">
         {!isActive ? (
-            <Button onClick={handleStart} className="col-span-2" disabled={!user}>
+            <Button onClick={handleStart} className="col-span-2">
                 <Play className="mr-2 h-4 w-4" /> Start Session
             </Button>
         ) : (
