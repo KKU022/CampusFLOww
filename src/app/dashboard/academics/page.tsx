@@ -10,9 +10,6 @@ export default function AcademicsPage() {
     subjects, 
     loading, 
     handleAttendanceChange, 
-    addSubject, 
-    resetSubject, 
-    deleteSubject 
   } = useAppContext();
 
   return (
@@ -30,9 +27,6 @@ export default function AcademicsPage() {
             subjects={subjects}
             loading={loading}
             onAttendanceChange={handleAttendanceChange}
-            onAddSubject={addSubject}
-            onResetSubject={resetSubject}
-            onDeleteSubject={deleteSubject}
           />
         </TabsContent>
         <TabsContent value="cgpa">
