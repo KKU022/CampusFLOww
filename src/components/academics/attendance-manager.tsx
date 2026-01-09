@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -11,32 +12,61 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress-ring';
 import type { SubjectAttendance } from '@/lib/types';
 import { format } from 'date-fns';
-import {
-  Check,
-  X,
-} from 'lucide-react';
+import { Check, X, Pencil, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
+import { Input } from '../ui/input';
 
 type AttendanceManagerProps = {
   subjects: SubjectAttendance[];
   loading: boolean;
-  onAttendanceChange: (subjectName: string, action: 'attend' | 'miss') => void;
+  onAttendanceChange: (
+    subjectName: string,
+    action: 'attend' | 'miss'
+  ) => void;
+  onManualUpdate: (
+    subjectName: string,
+    attended: number,
+    total: number
+  ) => void;
 };
 
-
-export function AttendanceManager({ 
-    subjects,
-    loading,
-    onAttendanceChange,
+export function AttendanceManager({
+  subjects,
+  loading,
+  onAttendanceChange,
+  onManualUpdate,
 }: AttendanceManagerProps) {
+  const [editing, setEditing] = useState<
+    { subject: string; attended: string; total: string } | undefined
+  >(undefined);
+
   const targetAttendance = 75;
 
   const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
   const totalClasses = subjects.reduce((sum, s) => sum + s.total, 0);
   const overallAttendance =
     totalClasses > 0 ? (totalAttended / totalClasses) * 100 : 0;
-  
+
+  const handleEdit = (subject: SubjectAttendance) => {
+    setEditing({
+      subject: subject.name,
+      attended: String(subject.attended),
+      total: String(subject.total),
+    });
+  };
+
+  const handleSave = () => {
+    if (editing) {
+      const attended = parseInt(editing.attended, 10);
+      const total = parseInt(editing.total, 10);
+      if (!isNaN(attended) && !isNaN(total) && total >= attended) {
+        onManualUpdate(editing.subject, attended, total);
+        setEditing(undefined);
+      }
+    }
+  };
+
   const getStatus = (attended: number, total: number) => {
     const currentPercentage = total > 0 ? (attended / total) * 100 : 0;
     if (currentPercentage >= targetAttendance) {
@@ -72,37 +102,40 @@ export function AttendanceManager({
 
   if (loading) {
     return (
-        <Card className="border-none shadow-none">
-            <CardHeader>
-                 <div className="flex items-start justify-between">
-                    <div>
-                        <CardDescription>Target: {targetAttendance}%</CardDescription>
-                        <Skeleton className="h-7 w-48 mt-1" />
-                         <div className="text-sm text-muted-foreground mt-1">
-                            <Skeleton className="h-4 w-24" />
-                        </div>
-                    </div>
+      <Card className="border-none shadow-none">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardDescription>Target: {targetAttendance}%</CardDescription>
+              <Skeleton className="h-7 w-48 mt-1" />
+              <div className="text-sm text-muted-foreground mt-1">
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <Card
+              key={i}
+              className="bg-card-foreground/5 dark:bg-card-foreground/10"
+            >
+              <CardContent className="p-4 flex items-center gap-4">
+                <Skeleton className="w-1.5 h-12 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-2/3" />
                 </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                    <Card key={i} className="bg-card-foreground/5 dark:bg-card-foreground/10">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <Skeleton className="w-1.5 h-12 rounded-full" />
-                            <div className="flex-1 space-y-2">
-                                <Skeleton className="h-6 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                                <Skeleton className="h-4 w-2/3" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="h-[60px] w-[60px] rounded-full" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </CardContent>
-        </Card>
-    )
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-[60px] w-[60px] rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -125,6 +158,8 @@ export function AttendanceManager({
           const attendancePercentage =
             subject.total > 0 ? (subject.attended / subject.total) * 100 : 0;
           const status = getStatus(subject.attended, subject.total);
+          const isEditingThis = editing?.subject === subject.name;
+
           return (
             <Card
               key={subject.name}
@@ -139,15 +174,35 @@ export function AttendanceManager({
                 />
                 <div className="flex-1">
                   <p className="font-bold text-lg">{subject.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Attendance: {subject.attended}/{subject.total}
-                  </p>
+                  {isEditingThis ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        type="number"
+                        value={editing.attended}
+                        onChange={(e) =>
+                          setEditing({ ...editing, attended: e.target.value })
+                        }
+                        className="h-8 w-20"
+                      />
+                      <span className="text-muted-foreground">/</span>
+                      <Input
+                        type="number"
+                        value={editing.total}
+                        onChange={(e) =>
+                          setEditing({ ...editing, total: e.target.value })
+                        }
+                        className="h-8 w-20"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Attendance: {subject.attended}/{subject.total}
+                    </p>
+                  )}
                   <p
                     className={cn(
                       'text-sm',
-                      status.isOnTrack
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                      status.isOnTrack ? 'text-green-600' : 'text-red-600'
                     )}
                   >
                     Status: {status.text}
@@ -163,20 +218,15 @@ export function AttendanceManager({
                     )}
                   />
                   <div className="flex flex-col gap-1">
-                    <Button
-                      size="icon"
-                      className="h-6 w-6 bg-green-100 hover:bg-green-200 text-green-700"
-                      onClick={() => onAttendanceChange(subject.name, 'attend')}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      className="h-6 w-6 bg-red-100 hover:bg-red-200 text-red-700"
-                      onClick={() => onAttendanceChange(subject.name, 'miss')}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    {isEditingThis ? (
+                       <Button size="icon" className="h-8 w-8" onClick={handleSave}>
+                         <Save className="h-4 w-4" />
+                       </Button>
+                    ) : (
+                       <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleEdit(subject)}>
+                         <Pencil className="h-4 w-4" />
+                       </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

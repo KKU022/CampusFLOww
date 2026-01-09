@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { TimetableEntry, Task, SubjectAttendance } from '@/lib/types';
-import { mockWeeklyTimetable, getInitialAttendance } from '@/lib/data';
+import { mockWeeklyTimetable } from '@/lib/data';
 
 interface AppContextType {
     weeklyTimetable: { [key: string]: TimetableEntry[] };
@@ -18,12 +18,28 @@ interface AppContextType {
     replaceTaskWithNext: (day: string, timetableId: number) => void;
     updateTimetableEntryStatus: (day: string, subjectName: string, action: 'attend' | 'miss' | 'cancel') => void;
     handleAttendanceChange: (subjectName: string, action: 'attend' | 'miss') => void;
+    updateSubjectAttendance: (subjectName: string, attended: number, total: number) => void;
     addSubject: (newSubjectName: string) => void;
     resetSubject: (subjectName: string) => void;
     deleteSubject: (subjectName: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const getSubjectsFromTimetable = (timetable: { [key: string]: TimetableEntry[] }): SubjectAttendance[] => {
+    const subjectNames = new Set<string>();
+    Object.values(timetable).flat().forEach(entry => {
+        if (entry.type === 'lecture' || entry.type === 'lab') {
+            subjectNames.add(entry.subject);
+        }
+    });
+
+    return Array.from(subjectNames).map(name => ({
+        name: name,
+        attended: Math.floor(Math.random() * 10) + 15,
+        total: Math.floor(Math.random() * 5) + 25,
+    }));
+};
 
 export const AppStateProvider = ({ children }: { children: ReactNode }) => {
     const [weeklyTimetable, setWeeklyTimetable] = useState<{ [key: string]: TimetableEntry[] }>(mockWeeklyTimetable);
@@ -32,7 +48,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setSubjects(getInitialAttendance());
+        setSubjects(getSubjectsFromTimetable(mockWeeklyTimetable));
         const initialTasks: Task[] = [
             { id: 1, suggestion: 'Review DSA Lecture 5', type: 'study', duration: '30m', completed: false },
             { id: 2, suggestion: 'Finish Compiler Design assignment', type: 'coding', duration: '1h', completed: false },
@@ -120,13 +136,19 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
             const daySchedule = newWeeklyTimetable[day];
     
             const newDaySchedule = daySchedule.map(entry => {
-                if (entry.subject === subjectName) {
+                if (entry.subject === subjectName && entry.status === 'scheduled') { // Only update if not already marked
                      if (entry.type === 'task' && action === 'attend') {
                         return { ...entry, subject: 'Free Slot', type: 'break' as const, status: 'scheduled' as const };
                     }
                     if (action === 'cancel') {
                          return { ...entry, status: 'cancelled' as const };
                     }
+
+                    // For lectures/labs, update attendance
+                    if (entry.type === 'lecture' || entry.type === 'lab') {
+                        handleAttendanceChange(subjectName, action as 'attend' | 'miss');
+                    }
+
                     return { ...entry, status: action === 'attend' ? 'attended' as const : 'missed' as const };
                 }
                 return entry;
@@ -135,13 +157,6 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
             newWeeklyTimetable[day] = newDaySchedule;
             return newWeeklyTimetable;
         });
-
-        if (action !== 'cancel') {
-             const entry = weeklyTimetable[day]?.find(e => e.subject === subjectName);
-             if (entry && entry.type === 'lecture') {
-                handleAttendanceChange(subjectName, action);
-            }
-        }
     };
     
     const handleAttendanceChange = (subjectName: string, action: 'attend' | 'miss') => {
@@ -157,8 +172,12 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
         );
     };
 
+    const updateSubjectAttendance = (subjectName: string, attended: number, total: number) => {
+        setSubjects(prev => prev.map(s => s.name === subjectName ? { ...s, attended, total } : s));
+    };
+
     const addSubject = (newSubjectName: string) => {
-        if (newSubjectName.trim() === '') return;
+        if (newSubjectName.trim() === '' || subjects.some(s => s.name === newSubjectName)) return;
         setSubjects((prev) => [...prev, { name: newSubjectName, attended: 0, total: 0 }]);
     };
 
@@ -184,6 +203,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
         replaceTaskWithNext,
         updateTimetableEntryStatus,
         handleAttendanceChange,
+        updateSubjectAttendance,
         addSubject,
         resetSubject,
         deleteSubject

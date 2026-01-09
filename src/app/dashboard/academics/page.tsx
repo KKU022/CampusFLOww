@@ -9,7 +9,8 @@ export default function AcademicsPage() {
   const { 
     subjects, 
     loading, 
-    handleAttendanceChange, 
+    handleAttendanceChange,
+    updateSubjectAttendance,
   } = useAppContext();
 
   return (
@@ -27,6 +28,7 @@ export default function AcademicsPage() {
             subjects={subjects}
             loading={loading}
             onAttendanceChange={handleAttendanceChange}
+            onManualUpdate={updateSubjectAttendance}
           />
         </TabsContent>
         <TabsContent value="cgpa">
