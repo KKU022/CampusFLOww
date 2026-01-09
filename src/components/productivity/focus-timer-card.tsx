@@ -41,7 +41,8 @@ export function FocusTimerCard() {
   const firestore = useFirestore();
 
   const totalSeconds = minutes * 60 + seconds;
-  const progress = (totalSeconds / initialTime) * 100;
+  const progress = initialTime > 0 ? (totalSeconds / initialTime) * 100 : 100;
+
 
   const liveSessionRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -142,17 +143,17 @@ export function FocusTimerCard() {
 
   const handleReset = () => {
     const timeSpent = initialTime - totalSeconds;
-    if (timeSpent > 0) {
+    if (timeSpent > 0 && subject) {
       setInterruptedSessions(prev => [...prev, { subject, duration: timeSpent }]);
     }
-    if (user && firestore) {
+    if (user && firestore && timeSpent > 0 && subject) {
         const focusSession = {
             userId: user.uid,
             subject,
             taskType,
             startTime: serverTimestamp(),
             endTime: serverTimestamp(),
-            duration: Math.round((initialTime - totalSeconds) / 60),
+            duration: Math.round(timeSpent / 60),
             interrupted: true,
         };
         const sessionsRef = collection(firestore, `users/${user.uid}/focusSessions`);

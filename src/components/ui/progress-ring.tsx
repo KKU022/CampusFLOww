@@ -11,9 +11,10 @@ interface ProgressProps extends React.SVGProps<SVGSVGElement> {
 
 const Progress = React.forwardRef<SVGSVGElement, ProgressProps>(
   ({ className, value = 0, size = 100, strokeWidth = 10, ...props }, ref) => {
+    const validValue = isNaN(value) ? 0 : Math.max(0, Math.min(100, value));
     const r = (size - strokeWidth) / 2
     const circumference = 2 * Math.PI * r
-    const offset = circumference - (value / 100) * circumference
+    const offset = circumference - (validValue / 100) * circumference
 
     return (
       <div className="relative" style={{ width: size, height: size }}>
@@ -51,7 +52,7 @@ const Progress = React.forwardRef<SVGSVGElement, ProgressProps>(
           />
         </svg>
         <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">
-          {Math.round(value)}%
+          {Math.round(validValue)}%
         </span>
       </div>
     )
