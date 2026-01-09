@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -19,10 +20,10 @@ import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const days = [
-  { day: 'Today', date: '06 Jan', progress: '1/4' },
-  { day: 'Tom', date: '07 Jan', progress: '0/4' },
-  { day: 'Thu', date: '08 Jan', progress: '0/4' },
-  { day: 'Fri', date: '09 Jan', progress: '0/4' },
+  { day: 'Today', date: '06 Jan' },
+  { day: 'Tom', date: '07 Jan' },
+  { day: 'Thu', date: '08 Jan' },
+  { day: 'Fri', date: '09 Jan' },
 ];
 
 const menuData: { [key: string]: any } = {
@@ -150,7 +151,6 @@ export function FoodMenuCard() {
             >
               <div className="font-semibold">{day.day}</div>
               <div className="text-sm">{day.date}</div>
-              <div className="mt-2 text-xs py-0.5 px-1.5 rounded-full bg-background/20">{day.progress}</div>
             </Button>
           ))}
         </div>
