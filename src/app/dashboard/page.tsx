@@ -9,6 +9,7 @@ import type { TimetableEntry, Task, SubjectAttendance } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { CollegeTimetable } from '@/components/dashboard/college-timetable';
 import { LiveStudyCard } from '@/components/dashboard/live-study-card';
+import { useToast } from '@/hooks/use-toast';
 
 
 const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -23,21 +24,19 @@ export default function DashboardPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [selectedDay, setSelectedDay] = useState<string>(getCurrentDay());
     const [subjects, setSubjects] = useState<SubjectAttendance[]>([]);
+    const { toast } = useToast();
 
     useEffect(() => {
         setSubjects(getInitialAttendance());
+        const initialTasks: Task[] = [
+            { id: 1, suggestion: 'Review DSA Lecture 5', type: 'study', duration: '30m', completed: false },
+            { id: 2, suggestion: 'Finish Compiler Design assignment', type: 'coding', duration: '1h', completed: false },
+        ];
+        setTasks(initialTasks);
     }, []);
 
-    const handleAddTask = (taskName: string) => {
-        const newTask: Task = {
-            id: Date.now(),
-            suggestion: taskName,
-            type: 'study', // default type
-            duration: 'Flexible',
-            completed: false,
-        };
-
-        let taskAddedToTimetable = false;
+    const moveTaskToSchedule = (task: Task) => {
+         let taskAddedToTimetable = false;
         
         setWeeklyTimetable(prev => {
             const newWeeklyTimetable = { ...prev };
@@ -48,7 +47,7 @@ export default function DashboardPage() {
                     taskAddedToTimetable = true;
                     return {
                         ...entry,
-                        subject: taskName,
+                        subject: task.suggestion,
                         type: 'task',
                     };
                 }
@@ -59,12 +58,55 @@ export default function DashboardPage() {
             return newWeeklyTimetable;
         });
 
+        if (taskAddedToTimetable) {
+            toast({
+                title: 'Task Scheduled!',
+                description: `"${task.suggestion}" has been added to your ${selectedDay} schedule.`,
+            });
+            return true;
+        }
+        return false;
+    }
 
-        if (!taskAddedToTimetable) {
+    const handleAddTask = (taskName: string) => {
+        const newTask: Task = {
+            id: Date.now(),
+            suggestion: taskName,
+            type: 'study', // default type
+            duration: 'Flexible',
+            completed: false,
+        };
+
+        const moved = moveTaskToSchedule(newTask);
+        if (!moved) {
             setTasks(prevTasks => [...prevTasks, newTask]);
         }
     };
+
+    const handleMoveTaskToSchedule = (taskId: number) => {
+        const taskToMove = tasks.find(t => t.id === taskId);
+        if (taskToMove) {
+            const moved = moveTaskToSchedule(taskToMove);
+            if (moved) {
+                setTasks(prev => prev.filter(t => t.id !== taskId));
+            } else {
+                 toast({
+                    variant: 'destructive',
+                    title: 'No Free Slots!',
+                    description: `There are no available free slots in your ${selectedDay} schedule.`,
+                });
+            }
+        }
+    };
     
+    const handleTaskComplete = (taskId: number) => {
+        setTasks(prev => prev.map(t => t.id === taskId ? {...t, completed: !t.completed} : t));
+    };
+
+    const handleTaskDelete = (taskId: number) => {
+        setTasks(prev => prev.filter(t => t.id !== taskId));
+    };
+
     const handleReplaceTask = (day: string, timetableId: number) => {
         if (tasks.length > 0) {
             const nextTask = tasks[0];
@@ -149,7 +191,13 @@ export default function DashboardPage() {
                     <CollegeTimetable />
                 </div>
                 <div className="space-y-6">
-                    <TodoList tasks={tasks} onAddTask={handleAddTask} />
+                    <TodoList 
+                        tasks={tasks} 
+                        onAddTask={handleAddTask}
+                        onTaskComplete={handleTaskComplete}
+                        onTaskDelete={handleTaskDelete}
+                        onMoveTask={handleMoveTaskToSchedule}
+                    />
                     <LiveStudyCard />
                 </div>
             </div>
