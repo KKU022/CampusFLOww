@@ -132,25 +132,22 @@ export default function DashboardPage() {
     };
 
     const handleAttendanceChangeFromTimetable = (subjectName: string, action: 'attend' | 'miss' | 'cancel') => {
-        if (action !== 'cancel') {
-            setSubjects(prevSubjects =>
-              prevSubjects.map(subject => {
-                if (subject.name === subjectName) {
-                  const newAttended = action === 'attend' ? subject.attended + 1 : subject.attended;
-                  const newTotal = subject.total + 1;
-                  return { ...subject, attended: newAttended, total: newTotal };
-                }
-                return subject;
-              })
-            );
-        }
-    
         setWeeklyTimetable(prev => {
             const newWeeklyTimetable = { ...prev };
             const daySchedule = newWeeklyTimetable[selectedDay];
     
             const newDaySchedule = daySchedule.map(entry => {
                 if (entry.subject === subjectName) {
+                     if (entry.type === 'task' && action === 'attend') {
+                        // If a task is completed, revert it to a free slot
+                        return { 
+                            ...entry, 
+                            subject: 'Free Slot',
+                            type: 'break',
+                            status: 'scheduled' 
+                        };
+                    }
+
                     if (action === 'cancel') {
                          return { ...entry, status: 'cancelled' };
                     }
@@ -162,6 +159,23 @@ export default function DashboardPage() {
             newWeeklyTimetable[selectedDay] = newDaySchedule;
             return newWeeklyTimetable;
         });
+
+        // Only update attendance for lectures/labs, not for tasks
+        if (action !== 'cancel') {
+             const entry = weeklyTimetable[selectedDay].find(e => e.subject === subjectName);
+             if (entry && entry.type === 'lecture') {
+                setSubjects(prevSubjects =>
+                  prevSubjects.map(subject => {
+                    if (subject.name === subjectName) {
+                      const newAttended = action === 'attend' ? subject.attended + 1 : subject.attended;
+                      const newTotal = subject.total + 1;
+                      return { ...subject, attended: newAttended, total: newTotal };
+                    }
+                    return subject;
+                  })
+                );
+            }
+        }
     };
     
     return (
