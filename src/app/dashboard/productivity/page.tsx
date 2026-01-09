@@ -1,7 +1,6 @@
 'use client';
 import { FocusTimerCard } from "@/components/productivity/focus-timer-card";
 import { LeaderboardCard } from "@/components/dashboard/leaderboard-card";
-import { ProductivityHubCard } from "@/components/productivity/productivity-hub-card";
 
 export default function ProductivityPage() {
     return (
@@ -13,10 +12,7 @@ export default function ProductivityPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <FocusTimerCard />
-                <div className="space-y-8">
-                    <ProductivityHubCard />
-                    <LeaderboardCard />
-                </div>
+                <LeaderboardCard />
             </div>
         </div>
     )
