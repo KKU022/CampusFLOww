@@ -8,8 +8,7 @@ import { useAppContext } from '@/context/AppContext';
 export default function AcademicsPage() {
   const { 
     subjects, 
-    loading, 
-    handleAttendanceChange,
+    loading,
     updateSubjectAttendance,
     resetSubject,
     deleteSubject,
@@ -29,7 +28,6 @@ export default function AcademicsPage() {
           <AttendanceManager
             subjects={subjects}
             loading={loading}
-            onAttendanceChange={handleAttendanceChange}
             onManualUpdate={updateSubjectAttendance}
             onReset={resetSubject}
             onDelete={deleteSubject}
