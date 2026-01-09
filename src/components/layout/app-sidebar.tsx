@@ -72,33 +72,6 @@ export function AppSidebar() {
             </Tooltip>
           ))}
         </nav>
-        <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="cursor-pointer">
-              <Avatar className="h-9 w-9 md:h-8 md:w-8">
-                <AvatarImage src={mockUser.avatarUrl} alt={mockUser.name} data-ai-hint="person avatar"/>
-                <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start">
-              <DropdownMenuLabel className="font-headline">{mockUser.name}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link href="#" className="flex w-full items-center justify-between">
-                  Settings <Settings className="h-4 w-4" />
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link href="/login" className="flex w-full items-center justify-between text-destructive">
-                  Logout <LogOut className="h-4 w-4" />
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </nav>
       </TooltipProvider>
     </aside>
   );
