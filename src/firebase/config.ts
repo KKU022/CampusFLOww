@@ -1,8 +1,11 @@
+'use client';
+
 export const firebaseConfig = {
-  "projectId": "studio-3109891410-29be1",
-  "appId": "1:914905672482:web:f18e09d720481fcef0937b",
-  "apiKey": "AIzaSyBuANji8Xxtf5tcEREaz85yZyG2K7_EaIE",
-  "authDomain": "studio-3109891410-29be1.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "914905672482"
+  apiKey: "AIzaSyDOxbn1K5p6M2qCTc-x7fnA50cjqBYhsnU",
+  authDomain: "kampusphlow.firebaseapp.com",
+  projectId: "kampusphlow",
+  storageBucket: "kampusphlow.appspot.com",
+  messagingSenderId: "951857190998",
+  appId: "1:951857190998:web:ae05c038d86034016203f7",
+  measurementId: "G-HPZYJKVWZ3",
 };

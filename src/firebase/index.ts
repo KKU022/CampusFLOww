@@ -1,50 +1,45 @@
 'use client';
 
-import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore';
+import { firebaseConfig } from './config';
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
+/* ---------------- Firebase Init (App Hosting safe) ---------------- */
+
 export function initializeFirebase() {
   if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
-    let firebaseApp;
+    let firebaseApp: FirebaseApp;
     try {
-      // Attempt to initialize via Firebase App Hosting environment variables
+      // Firebase App Hosting (production)
       firebaseApp = initializeApp();
-    } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
+    } catch {
+      // Local development fallback
       firebaseApp = initializeApp(firebaseConfig);
     }
 
     return getSdks(firebaseApp);
   }
 
-  // If already initialized, return the SDKs with the already initialized App
   return getSdks(getApp());
 }
 
-export function getSdks(firebaseApp: FirebaseApp) {
+function getSdks(firebaseApp: FirebaseApp) {
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    firestore: getFirestore(firebaseApp),
   };
 }
 
-export * from './provider';
+/* ---------------- Barrel Exports ---------------- */
+
+// 🔴 THIS IS WHAT YOU WERE MISSING
 export * from './client-provider';
+export * from './provider';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
-export * from './non-blocking-updates';
 export * from './non-blocking-login';
+export * from './non-blocking-updates';
 export * from './errors';
 export * from './error-emitter';

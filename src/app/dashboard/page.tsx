@@ -73,7 +73,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <WelcomeHeader name={mockUser.name} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex gap-2 items-center flex-wrap">
                         {weekDays.map(day => (
