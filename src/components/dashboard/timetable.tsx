@@ -21,7 +21,7 @@ const typeIconMapping = {
 
 type TimetableProps = {
   timetable: TimetableEntry[];
-  handleAttendanceChange: (subject: string, action: 'attend' | 'miss' | 'cancel') => void;
+  handleAttendanceChange: (subject: string, action: 'attend' | 'miss' | 'cancel', entryId: number) => void;
   tasks: Task[];
   replaceTask: (day: string, id: number) => void;
   selectedDay: string;
@@ -53,24 +53,24 @@ export default function Timetable({ timetable, handleAttendanceChange, tasks, re
 
                 return (
                 <li
-                    key={entry.id}
-                    className={cn(
-                    'flex items-center space-x-4 rounded-lg border p-4 transition-all',
-                    isFree ? 'bg-accent/10 border-accent/20' : 'bg-card',
-                    isAttended ? 'bg-green-500/10 border-green-500/20' : '',
-                    isMissed ? 'bg-red-500/10 border-red-500/20' : '',
-                    isCancelled ? 'bg-gray-500/10 border-gray-500/20' : ''
-                    )}
+                  key={entry.id}
+                  className={cn(
+                  'flex items-center space-x-4 rounded-lg border p-4 transition-all',
+                  isFree ? 'bg-emerald-50 border-emerald-100' : 'bg-card',
+                  isAttended ? 'bg-green-500/10 border-green-500/20' : '',
+                  isMissed ? 'bg-red-500/10 border-red-500/20' : '',
+                  isCancelled ? 'bg-gray-500/10 border-gray-500/20' : ''
+                  )}
                 >
-                    <div className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full", 
-                        isFree || entry.type === 'task' ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary",
-                        isAttended && "bg-green-500/20 text-green-700",
-                        isMissed && "bg-red-500/20 text-red-700",
-                        isCancelled && "bg-gray-500/20 text-gray-700"
-                    )}>
-                        {isFree ? <Sparkles className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                    </div>
+                  <div className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full",
+                    isFree || entry.type === 'task' ? "bg-emerald-100 text-emerald-800" : "bg-primary/10 text-primary",
+                    isAttended && "bg-green-500/20 text-green-700",
+                    isMissed && "bg-red-500/20 text-red-700",
+                    isCancelled && "bg-gray-500/20 text-gray-700"
+                  )}>
+                    {isFree ? <Sparkles className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                  </div>
 
                     <div className="flex-1">
                     <p className={cn("font-semibold", (isMissed || isAttended || isCancelled) && "line-through")}>{entry.subject}</p>
@@ -82,7 +82,7 @@ export default function Timetable({ timetable, handleAttendanceChange, tasks, re
                             variant={'outline'}
                             size="icon"
                             className="h-8 w-8 bg-green-100 hover:bg-green-200 text-green-700"
-                            onClick={() => handleAttendanceChange(entry.subject, 'attend')}
+                          onClick={() => handleAttendanceChange(entry.subject, 'attend', entry.id)}
                         >
                             <Check className="h-4 w-4" />
                         </Button>
@@ -90,7 +90,7 @@ export default function Timetable({ timetable, handleAttendanceChange, tasks, re
                             variant={'outline'}
                             size="icon"
                             className="h-8 w-8 bg-red-100 hover:bg-red-200 text-red-700"
-                            onClick={() => handleAttendanceChange(entry.subject, 'miss')}
+                          onClick={() => handleAttendanceChange(entry.subject, 'miss', entry.id)}
                         >
                             <X className="h-4 w-4" />
                         </Button>
@@ -98,7 +98,7 @@ export default function Timetable({ timetable, handleAttendanceChange, tasks, re
                             variant={'outline'}
                             size="icon"
                             className="h-8 w-8 bg-gray-100 hover:bg-gray-200 text-gray-700"
-                            onClick={() => handleAttendanceChange(entry.subject, 'cancel')}
+                          onClick={() => handleAttendanceChange(entry.subject, 'cancel', entry.id)}
                         >
                             <Ban className="h-4 w-4" />
                         </Button>

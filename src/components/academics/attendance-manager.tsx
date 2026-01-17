@@ -44,7 +44,7 @@ export function AttendanceManager({
     { subject: string; attended: string; total: string } | undefined
   >(undefined);
 
-  const { handleAttendanceChange } = useAppContext();
+  const { handleAttendanceChange, markNextClassAttendance } = useAppContext();
 
   const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
   const totalClasses = subjects.reduce((sum, s) => sum + s.total, 0);
@@ -228,10 +228,28 @@ export function AttendanceManager({
                   />
                   {!isEditingThis ? (
                   <>
-                    <Button size="icon" className="h-8 w-8 bg-green-500/20 text-green-700 hover:bg-green-500/30" onClick={() => handleAttendanceChange(subject.name, 'attend')}>
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 bg-green-500/20 text-green-700 hover:bg-green-500/30"
+                      onClick={() => {
+                        const updated = markNextClassAttendance(subject.name, 'attend');
+                        if (!updated) {
+                          handleAttendanceChange(subject.name, 'attend');
+                        }
+                      }}
+                    >
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" className="h-8 w-8 bg-red-500/20 text-red-700 hover:bg-red-500/30" onClick={() => handleAttendanceChange(subject.name, 'miss')}>
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 bg-red-500/20 text-red-700 hover:bg-red-500/30"
+                      onClick={() => {
+                        const updated = markNextClassAttendance(subject.name, 'miss');
+                        if (!updated) {
+                          handleAttendanceChange(subject.name, 'miss');
+                        }
+                      }}
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                     <DropdownMenu>

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import WelcomeHeader from "@/components/dashboard/welcome-header";
 import Timetable from "@/components/dashboard/timetable";
 import TodoList from "@/components/dashboard/todo-list";
-import { mockUser } from "@/lib/data";
 import { Button } from '@/components/ui/button';
 import { CollegeTimetable } from '@/components/dashboard/college-timetable';
 import { LiveStudyCard } from '@/components/dashboard/live-study-card';
@@ -65,13 +64,13 @@ export default function DashboardPage() {
         replaceTaskWithNext(day, timetableId);
     };
 
-    const handleAttendanceChangeFromTimetable = (subjectName: string, action: 'attend' | 'miss' | 'cancel') => {
-        updateTimetableEntryStatus(selectedDay, subjectName, action);
+    const handleAttendanceChangeFromTimetable = (subjectName: string, action: 'attend' | 'miss' | 'cancel', entryId: number) => {
+        updateTimetableEntryStatus(selectedDay, subjectName, action, entryId);
     };
     
     return (
         <div className="space-y-6">
-            <WelcomeHeader name={mockUser.name} />
+            <WelcomeHeader />
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div className="lg:col-span-2 space-y-6">

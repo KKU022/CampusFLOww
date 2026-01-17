@@ -1,9 +1,12 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import type { TimetableEntry, Task, SubjectAttendance } from '@/lib/types';
 import { mockWeeklyTimetable } from '@/lib/data';
+import { auth } from '@/firebase/auth';
+import { signInAnonymously } from 'firebase/auth';
+import { saveTimetableDay, saveUserState, watchTimetable, watchUserState } from '@/firebase/firestore';
 
 interface AppContextType {
     weeklyTimetable: { [key: string]: TimetableEntry[] };
@@ -16,8 +19,9 @@ interface AppContextType {
     completeTask: (taskId: number) => void;
     deleteTask: (taskId: number) => void;
     replaceTaskWithNext: (day: string, timetableId: number) => void;
-    updateTimetableEntryStatus: (day: string, subjectName: string, action: 'attend' | 'miss' | 'cancel') => void;
+    updateTimetableEntryStatus: (day: string, subjectName: string, action: 'attend' | 'miss' | 'cancel', entryId?: number) => void;
     handleAttendanceChange: (subjectName: string, action: 'attend' | 'miss') => void;
+    markNextClassAttendance: (subjectName: string, action: 'attend' | 'miss' | 'cancel') => boolean;
     updateSubjectAttendance: (subjectName: string, attended: number, total: number) => void;
     addSubject: (newSubjectName: string) => void;
     resetSubject: (subjectName: string) => void;
@@ -46,16 +50,97 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [subjects, setSubjects] = useState<SubjectAttendance[]>([]);
     const [loading, setLoading] = useState(true);
+    const [uid, setUid] = useState<string | null>(null);
+    const hydrationRef = useRef(true);
+    const lastTimetableSync = useRef('');
+    const lastTaskSync = useRef('');
+    const guestAttemptedRef = useRef(false);
+
+    const initialTasks: Task[] = [
+        { id: 1, suggestion: 'Review DSA Lecture 5', type: 'study', duration: '30m', completed: false },
+        { id: 2, suggestion: 'Finish Compiler Design assignment', type: 'coding', duration: '1h', completed: false },
+    ];
 
     useEffect(() => {
-        setSubjects(getSubjectsFromTimetable(mockWeeklyTimetable));
-        const initialTasks: Task[] = [
-            { id: 1, suggestion: 'Review DSA Lecture 5', type: 'study', duration: '30m', completed: false },
-            { id: 2, suggestion: 'Finish Compiler Design assignment', type: 'coding', duration: '1h', completed: false },
-        ];
-        setTasks(initialTasks);
-        setLoading(false);
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUid(user?.uid ?? null);
+
+            if (!user && !guestAttemptedRef.current) {
+                guestAttemptedRef.current = true;
+                signInAnonymously(auth).catch((error) => {
+                    console.error('Anonymous sign-in failed', error);
+                });
+            }
+        });
+
+        return () => unsubscribe();
     }, []);
+
+    useEffect(() => {
+        if (!uid) {
+            setWeeklyTimetable(mockWeeklyTimetable);
+            setTasks(initialTasks);
+            setSubjects(getSubjectsFromTimetable(mockWeeklyTimetable));
+            setLoading(false);
+            hydrationRef.current = true;
+            return;
+        }
+
+        setLoading(true);
+
+        const unsubTimetable = watchTimetable(uid, (data) => {
+            if (data) {
+                setWeeklyTimetable((prev) => ({ ...prev, ...(data as { [key: string]: TimetableEntry[] }) }));
+            } else {
+                setWeeklyTimetable(mockWeeklyTimetable);
+            }
+        });
+
+        const unsubState = watchUserState(uid, (data) => {
+            const nextTasks = Array.isArray((data as { tasks?: Task[] } | null)?.tasks)
+                ? ((data as { tasks?: Task[] }).tasks as Task[])
+                : initialTasks;
+            setTasks(nextTasks);
+            setSubjects(getSubjectsFromTimetable(mockWeeklyTimetable));
+            setLoading(false);
+            hydrationRef.current = false;
+        });
+
+        return () => {
+            unsubTimetable();
+            unsubState();
+        };
+    }, [uid]);
+
+    useEffect(() => {
+        if (!uid || hydrationRef.current) {
+            return;
+        }
+
+        const serialized = JSON.stringify(weeklyTimetable);
+        if (serialized === lastTimetableSync.current) {
+            return;
+        }
+        lastTimetableSync.current = serialized;
+
+        Object.entries(weeklyTimetable).forEach(([day, entries]) => {
+            saveTimetableDay(uid, day, entries);
+        });
+    }, [weeklyTimetable, uid]);
+
+    useEffect(() => {
+        if (!uid || hydrationRef.current) {
+            return;
+        }
+
+        const serialized = JSON.stringify(tasks);
+        if (serialized === lastTaskSync.current) {
+            return;
+        }
+        lastTaskSync.current = serialized;
+
+        saveUserState(uid, { tasks });
+    }, [tasks, uid]);
 
     const moveTaskToSchedule = (task: Task, day: string) => {
         setWeeklyTimetable(prev => {
@@ -147,13 +232,14 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
-    const updateTimetableEntryStatus = (day: string, subjectName: string, action: 'attend' | 'miss' | 'cancel') => {
+    const updateTimetableEntryStatus = (day: string, subjectName: string, action: 'attend' | 'miss' | 'cancel', entryId?: number) => {
         setWeeklyTimetable(prev => {
             const newWeeklyTimetable = { ...prev };
             const daySchedule = newWeeklyTimetable[day];
     
             const newDaySchedule = daySchedule.map(entry => {
-                if (entry.subject === subjectName && entry.status === 'scheduled') { // Only update if not already marked
+                const isMatch = entryId ? entry.id === entryId : entry.subject === subjectName;
+                if (isMatch && entry.status === 'scheduled') { // Only update if not already marked
                      if (entry.type === 'task') {
                          if(action === 'attend' || action === 'miss') {
                             return { ...entry, subject: 'Free Slot', type: 'break' as const, status: 'scheduled' as const };
@@ -166,7 +252,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
 
                     // For lectures/labs, update attendance
                     if (entry.type === 'lecture' || entry.type === 'lab') {
-                        handleAttendanceChange(subjectName, action as 'attend' | 'miss');
+                        handleAttendanceChange(entry.subject, action as 'attend' | 'miss');
                         return { ...entry, status: action === 'attend' ? 'attended' as const : 'missed' as const };
                     }
                 }
@@ -190,6 +276,24 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
           })
         );
     };
+
+        const markNextClassAttendance = (subjectName: string, action: 'attend' | 'miss' | 'cancel') => {
+                const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const today = weekDays[new Date().getDay()];
+                const daySchedule = weeklyTimetable[today] || [];
+                const nextEntry = daySchedule.find(entry =>
+                        entry.subject === subjectName &&
+                        entry.status === 'scheduled' &&
+                        (entry.type === 'lecture' || entry.type === 'lab')
+                );
+
+                if (!nextEntry) {
+                        return false;
+                }
+
+                updateTimetableEntryStatus(today, subjectName, action, nextEntry.id);
+                return true;
+        };
 
     const updateSubjectAttendance = (subjectName: string, attended: number, total: number) => {
         setSubjects(prev => prev.map(s => s.name === subjectName ? { ...s, attended, total } : s));
@@ -222,6 +326,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
         replaceTaskWithNext,
         updateTimetableEntryStatus,
         handleAttendanceChange,
+        markNextClassAttendance,
         updateSubjectAttendance,
         addSubject,
         resetSubject,
