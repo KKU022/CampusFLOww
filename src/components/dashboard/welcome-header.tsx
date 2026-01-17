@@ -178,7 +178,7 @@ export default function WelcomeHeader() {
         <button
           onClick={handleLogout}
           disabled={loading}
-          className="px-3 py-2 rounded-md border border-white/70 bg-white/50 text-sm hover:bg-white disabled:opacity-60"
+          className="px-3 py-2 rounded-md border border-red-200 bg-red-50 text-sm text-red-600 hover:bg-red-100 disabled:opacity-60"
         >
           Logout
         </button>
