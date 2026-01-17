@@ -5,9 +5,10 @@ import { AttendanceManager } from '@/components/academics/attendance-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TimetableUploadCard } from '@/components/academics/timetable-upload-card';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { useAppContext } from '@/context/AppContext';
 
-export default function AcademicsPage() {
+function AcademicsContent() {
   const { 
     subjects, 
     loading,
@@ -21,10 +22,6 @@ export default function AcademicsPage() {
   const defaultTab = params?.get('tab') ?? 'attendance';
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-headline text-3xl font-bold tracking-tighter">
-        Academic Health
-      </h1>
       <Tabs defaultValue={defaultTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
@@ -48,6 +45,18 @@ export default function AcademicsPage() {
           <TimetableUploadCard />
         </TabsContent>
       </Tabs>
+  );
+}
+
+export default function AcademicsPage() {
+  return (
+    <div className="space-y-6">
+      <h1 className="font-headline text-3xl font-bold tracking-tighter">
+        Academic Health
+      </h1>
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+        <AcademicsContent />
+      </Suspense>
     </div>
   );
 }
