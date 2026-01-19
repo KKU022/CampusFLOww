@@ -68,6 +68,39 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
     const lastTimetableSync = useRef('');
     const lastTaskSync = useRef('');
     const guestAttemptedRef = useRef(false);
+    const idSeqRef = useRef<{ lastMs: number; seq: number }>({ lastMs: 0, seq: 0 });
+
+    const createUniqueId = () => {
+        const ms = Date.now();
+        if (ms === idSeqRef.current.lastMs) {
+            idSeqRef.current.seq += 1;
+        } else {
+            idSeqRef.current.lastMs = ms;
+            idSeqRef.current.seq = 0;
+        }
+
+        return ms * 1000 + idSeqRef.current.seq;
+    };
+
+    const ensureUniqueTaskIds = (incoming: Task[]) => {
+        const seen = new Set<number>();
+        let changed = false;
+
+        const next = incoming.map((task) => {
+            const currentId = typeof task.id === 'number' ? task.id : NaN;
+            const needsNewId = !Number.isFinite(currentId) || seen.has(currentId);
+            if (needsNewId) {
+                changed = true;
+                const freshId = createUniqueId();
+                seen.add(freshId);
+                return { ...task, id: freshId };
+            }
+            seen.add(currentId);
+            return task;
+        });
+
+        return { tasks: next, changed };
+    };
 
     const initialTasks: Task[] = [];
 
@@ -124,9 +157,18 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
             const nextTasks = Array.isArray((data as { tasks?: Task[] } | null)?.tasks)
                 ? ((data as { tasks?: Task[] }).tasks as Task[])
                 : initialTasks;
-            setTasks(nextTasks);
+
+            const repaired = ensureUniqueTaskIds(nextTasks);
+            setTasks(repaired.tasks);
             setLoading(false);
             hydrationRef.current = false;
+
+            if (repaired.changed) {
+                // Persist repaired IDs so this doesn't keep happening across reloads.
+                saveUserState(uid, { tasks: repaired.tasks }).catch((err) => {
+                    console.error('Failed to persist repaired task IDs', err);
+                });
+            }
         });
 
         return () => {
@@ -193,7 +235,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
                 const newEndTime = lastEntry ? `${parseInt(lastEntry.endTime.split(':')[0]) + 1}:00` : '18:00';
 
                 daySchedule.push({
-                    id: Date.now(),
+                    id: createUniqueId(),
                     day: day,
                     subject: task.suggestion,
                     startTime: newStartTime,
@@ -212,7 +254,7 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
 
     const addTask = (taskName: string) => {
         const newTask: Task = {
-            id: Date.now(),
+            id: createUniqueId(),
             suggestion: taskName,
             type: 'study', // default type
             duration: 'Flexible',

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { AppSidebar } from '@/components/layout/app-sidebar';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { AppStateProvider } from '@/context/AppContext';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -9,6 +10,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-[#c7b6ff]/40" />
         <AppSidebar />
         <div className="relative flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+          <div className="flex justify-end p-4 sm:px-6 sm:py-0">
+            <ThemeToggle variant="pill" />
+          </div>
           <main className="relative grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             {children}
           </main>

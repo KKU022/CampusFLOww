@@ -1,112 +1,39 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model. All personal data, including
- * academic metrics, tasks, and timetable information, is nested under a private user-specific path
- * (/users/{userId}), making it accessible only to the authenticated owner. A separate top-level
- * collection (/hostelStatus) is provided for publicly readable, shared data.
- *
- * Data Structure: The database is segregated into two main areas:
- * 1.  /users/{userId}/**: A private data tree for each user. All documents and subcollections
- *     under this path belong exclusively to the user identified by {userId}.
- * 2.  /hostelStatus/{hostelStatusId}: A top-level collection for shared information that all users
- *     can read.
- *
- * Key Security Decisions:
- * - User Isolation: A user can only ever read or write data within their own document tree.
- * - No User Listing: It is impossible for any client to list all documents in the `/users`
- *   collection, preventing user enumeration.
- * - Public Data Segregation: Publicly accessible data (HostelStatus) is stored in a separate
- *   top-level collection to ensure clear and performant security boundaries, avoiding complex
- *   query rules on mixed-privacy collections.
- * - Denormalization for Authorization: User-owned documents in subcollections (e.g., Task)
- *   contain a denormalized `userId` field. This is validated against the path on creation to
- *   ensure relational integrity and allows for simple, performant ownership checks without
- *   needing extra `get()` calls.
- * - Secure Default for Shared Data: Writes to the public `/hostelStatus` collection are disabled by
- *   default because the data model lacks an ownership field (e.g., 'adminId'). This defaults to
- *   the most secure posture, requiring explicit action from a developer to open up write access.
- */
-    /**
-     * @description User-owned data tree. Allows the authenticated owner to read/write
-     *              their document and any subcollections (e.g., /state, /timetable).
-     * @path        /users/{userId}/**
-     * @principle   Simple, strict ownership by UID.
-     */
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function hasCorrectUserIdOnCreate(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    function userIdIsImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
     match /users/{userId} {
-      allow get: if isOwner(userId);
+      allow get, create, update, delete: if isOwner(userId);
       allow list: if false;
-      allow create, update, delete: if isOwner(userId);
 
       match /{document=**} {
         allow read, write: if isOwner(userId);
       }
     }
-      allow list: if false; // Disallow listing of user documents for privacy.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
 
-      /**
-       * @description Manages a user's private timetable slots. Only the owner can manage their timetable.
-       * @path        /users/{userId}/timetableSlots/{timetableSlotId}
-       * @allow       (create) A user creating a new timetable slot in their own timetable.
-       * @deny        (get) A user trying to read another user's timetable slot.
-       * @principle   Enforces document ownership for all operations within a user-specific subcollection.
-       */
-      match /timetableSlots/{timetableSlotId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
-        allow update: if isExistingOwner(userId) && userIdIsImmutable();
-        allow delete: if isExistingOwner(userId);
-      }
-
-      /**
-       * @description Manages AI-suggested tasks for a user. Only the owner can manage their tasks.
-       * @path        /users/{userId}/tasks/{taskId}
-       * @allow       (update) A user marking one of their own tasks as complete.
-       * @deny        (delete) A user trying to delete a task from another user's list.
-       * @principle   Enforces document ownership and validates relational integrity via the `userId` field.
-       */
-      match /tasks/{taskId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
-        allow update: if isExistingOwner(userId) && userIdIsImmutable();
-        allow delete: if isExistingOwner(userId);
-      }
-
-      /**
-       * @description Manages a user's private academic metrics. Only the owner can manage these records.
-       * @path        /users/{userId}/academicMetrics/{academicMetricsId}
-       * @allow       (create) A user creating their initial academic metrics record.
-       * @deny        (get) A user attempting to access another user's academic performance data.
-       * @principle   Enforces document ownership for sensitive, user-specific data.
-       */
-      match /academicMetrics/{academicMetricsId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && hasCorrectUserIdOnCreate(userId);
-        allow update: if isExistingOwner(userId) && userIdIsImmutable();
-        allow delete: if isExistingOwner(userId);
-      }
+    match /liveStudySessions/{sessionId} {
+      allow read, write: if isSignedIn() && request.auth.uid == sessionId;
     }
 
-    /**
-     * @description Stores public information about hostel status. This data is readable by anyone
-     *              but cannot be modified by clients.
-     * @path        /hostelStatus/{hostelStatusId}
-     * @allow       (get, list) Any user (authenticated or not) reading the hostel status.
-     * @deny        (create, update, delete) Any client trying to modify hostel status records.
-     * @principle   Provides public read access for shared data while securing writes.
-     */
     match /hostelStatus/{hostelStatusId} {
-      allow get: if true;
-      allow list: if true;
-      // CRITICAL: The 'HostelStatus' entity is missing an ownership field (e.g., 'adminId', 'creatorId').
-      // Without it, secure write rules cannot be implemented. Writes are disabled by default.
-      allow create: if false; // TODO: Add admin/owner validation once the schema is updated.
-      allow update: if false; // TODO: Add admin/owner validation once the schema is updated.
-      allow delete: if false; // TODO: Add admin/owner validation once the schema is updated.
+      allow read: if true;
+      allow write: if false;
     }
   }
 }

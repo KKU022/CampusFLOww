@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signOut, updateProfile, User } from 'firebase/auth';
 import { auth } from '@/firebase/auth';
 import { saveUser, watchUser } from '@/firebase/firestore';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 const normalizeName = (value: string) => {
   const trimmed = value.trim();
@@ -147,7 +148,7 @@ export default function WelcomeHeader() {
         {!editing && (
           <button
             onClick={handleEditToggle}
-            className="inline-flex items-center gap-1 rounded-md border border-white/70 bg-white/50 px-2 py-1 text-xs text-slate-600 hover:bg-white"
+            className="inline-flex items-center gap-1 rounded-full border-2 border-slate-900 bg-white px-3 py-1 text-xs text-slate-700 hover:bg-slate-900 hover:text-white transition"
           >
             <PencilLine className="h-3 w-3" />
             Edit
@@ -158,19 +159,19 @@ export default function WelcomeHeader() {
             <input
               value={draftName}
               onChange={(e) => setDraftName(e.target.value)}
-              className="h-9 w-40 rounded-md border border-white/70 bg-white/70 px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7c5cff]/30"
+              className="h-9 w-40 rounded-full border-2 border-slate-900 bg-white px-3 text-sm text-slate-700 focus:outline-none"
               placeholder="Your name"
             />
             <button
               onClick={handleSaveName}
-              className="inline-flex items-center justify-center rounded-md bg-[#7c5cff] px-2 py-2 text-white hover:bg-[#6a4df7]"
+              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-3 py-2 text-white hover:bg-slate-800"
               aria-label="Save name"
             >
               <Check className="h-4 w-4" />
             </button>
             <button
               onClick={handleCancelEdit}
-              className="inline-flex items-center justify-center rounded-md border border-white/70 bg-white/70 px-2 py-2 text-slate-600 hover:bg-white"
+              className="inline-flex items-center justify-center rounded-full border-2 border-slate-900 bg-white px-3 py-2 text-slate-700 hover:bg-slate-900 hover:text-white"
               aria-label="Cancel name edit"
             >
               <X className="h-4 w-4" />
@@ -179,16 +180,17 @@ export default function WelcomeHeader() {
         )}
       </div>
       <div className="flex items-center gap-2">
+        <ThemeToggle variant="pill" />
         <button
           onClick={handleGoToUpload}
-          className="px-3 py-2 rounded-md border border-white/70 bg-white/50 text-sm text-slate-700 hover:bg-white"
+          className="px-3 py-2 rounded-full border-2 border-slate-900 bg-white text-sm text-slate-700 hover:bg-slate-900 hover:text-white transition"
         >
           Upload Timetable
         </button>
         <button
           onClick={handleLogout}
           disabled={loading}
-          className="px-3 py-2 rounded-md border border-red-200 bg-red-50 text-sm text-red-600 hover:bg-red-100 disabled:opacity-60"
+          className="px-3 py-2 rounded-full border-2 border-slate-900 bg-white text-sm text-slate-700 hover:bg-slate-900 hover:text-white disabled:opacity-60"
         >
           Logout
         </button>

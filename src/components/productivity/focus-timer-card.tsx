@@ -32,6 +32,7 @@ export function FocusTimerCard() {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [initialTime, setInitialTime] = useState(25 * 60);
+  const [mode, setMode] = useState<'focus' | 'short' | 'long'>('focus');
   const [subject, setSubject] = useState('');
   const [taskType, setTaskType] = useState('');
   const [interruptedSessions, setInterruptedSessions] = useState<InterruptedSession[]>([]);
@@ -108,6 +109,14 @@ export function FocusTimerCard() {
     setSeconds(0);
     setInitialTime(clampedMinutes * 60);
   }, [isActive]);
+
+  const handleSetMode = (nextMode: 'focus' | 'short' | 'long') => {
+    if (isActive) return;
+    setMode(nextMode);
+    if (nextMode === 'focus') setTime(25);
+    if (nextMode === 'short') setTime(5);
+    if (nextMode === 'long') setTime(15);
+  };
 
 
   const handleStart = () => {
@@ -187,13 +196,36 @@ export function FocusTimerCard() {
       <CardHeader>
         <CardTitle className="font-headline flex items-center gap-2">
             <Timer />
-            Focus Zone
+            Pomodoro Tracker
         </CardTitle>
         <CardDescription>
-          Select a subject and task, then start a timed session.
+          Work in focused sprints with short and long breaks.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center gap-6">
+        <div className="flex w-full items-center justify-center gap-2">
+          <Button
+            variant={mode === 'focus' ? 'default' : 'outline'}
+            onClick={() => handleSetMode('focus')}
+            disabled={isActive}
+          >
+            Focus 25
+          </Button>
+          <Button
+            variant={mode === 'short' ? 'default' : 'outline'}
+            onClick={() => handleSetMode('short')}
+            disabled={isActive}
+          >
+            Break 5
+          </Button>
+          <Button
+            variant={mode === 'long' ? 'default' : 'outline'}
+            onClick={() => handleSetMode('long')}
+            disabled={isActive}
+          >
+            Long 15
+          </Button>
+        </div>
         <div className="relative">
             <Progress 
                 value={progress}
